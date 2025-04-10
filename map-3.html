@@ -1,0 +1,502 @@
+from PyQt5.QtWidgets import QApplication, QMainWindow
+from PyQt5.QtWebEngineWidgets import QWebEngineView
+
+html_content = """
+<!DOCTYPE html>
+<html>
+<head>
+  <title>UMBC Campus Map</title>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <style>
+    /* CSS Reset and Base Styles */
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body {
+      height: 100%;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background-color: #f4f4f4;
+    }
+    /* Header Styling */
+    #header {
+      background-color: #002D62;
+      color: #fff;
+      padding: 15px 20px;
+      text-align: center;
+      font-size: 24px;
+      font-weight: bold;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+      position: relative;
+    }
+    /* UMBC Logo in top-right corner */
+    #umbcLogo {
+      position: absolute;
+      top: 10px;
+      right: 20px;
+      height: 50px;
+      z-index: 999;
+    }
+    /* Main Container: Sidebar + Map */
+    #main-container {
+      display: flex;
+      height: calc(100% - 60px);
+    }
+    /* Sidebar Styling */
+    #sidebar {
+      width: 300px;
+      background: #fff;
+      padding: 20px;
+      border-right: 1px solid #ddd;
+      box-shadow: 2px 0 5px rgba(0,0,0,0.1);
+      overflow-y: auto;
+    }
+    #sidebar h2 {
+      font-size: 20px;
+      margin-bottom: 15px;
+      color: #333;
+    }
+    /* Tab Styling */
+    #tabs {
+      display: flex;
+      margin-bottom: 20px;
+      border-bottom: 2px solid #ddd;
+    }
+    .tab {
+      flex: 1;
+      padding: 10px;
+      background-color: #eee;
+      border: none;
+      cursor: pointer;
+      font-size: 16px;
+      color: #333;
+      text-align: center;
+      border-bottom: 2px solid transparent;
+    }
+    .tab.active {
+      background-color: #fff;
+      border-bottom: 2px solid #002D62;
+      font-weight: bold;
+    }
+    /* Tab Content */
+    #tabContent > div {
+      margin-bottom: 20px;
+    }
+    /* Input and Button Styling */
+    input[type="text"] {
+      width: 100%;
+      padding: 10px;
+      font-size: 16px;
+      margin-bottom: 10px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+    }
+    button {
+      width: 100%;
+      padding: 10px;
+      font-size: 16px;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+    /* Button Colors */
+    #searchButton { background-color: #002D62; color: #fff; }
+    #searchButton:hover { background-color: #004080; }
+    #routeButton { background-color: #006600; color: #fff; }
+    #routeButton:hover { background-color: #008000; }
+    #trackButton { background-color: #CC6600; color: #fff; }
+    #trackButton:hover { background-color: #e68a00; }
+    /* Legend Styling */
+    #legend { margin-top: 30px; }
+    #legend h3 { font-size: 18px; margin-bottom: 10px; color: #002D62; }
+    .legend-item {
+      display: flex;
+      align-items: center;
+      margin-bottom: 10px;
+    }
+    .legend-marker {
+      width: 12px;
+      height: 12px;
+      background-color: red;
+      border-radius: 50%;
+      margin-right: 8px;
+    }
+    .legend-text { font-size: 14px; color: #333; }
+    /* Map Area */
+    #map { flex: 1; }
+  </style>
+</head>
+<body>
+  <!-- Header with UMBC Logo -->
+  <div id="header">
+    UMBC Campus Map
+    <img id="umbcLogo" src="file:///Users/mokshjain/Desktop/image.png" alt="UMBC Logo">
+  </div>
+  <div id="main-container">
+    <!-- Sidebar with Tabbed UI -->
+    <div id="sidebar">
+      <div id="tabs">
+        <button class="tab active" id="tabSearch">Search Building</button>
+        <button class="tab" id="tabRoute">Find Route</button>
+      </div>
+      <div id="tabContent">
+        <div id="searchContent">
+          <input id="searchInput" type="text" placeholder="Enter building name...">
+          <button id="searchButton">Search</button>
+        </div>
+        <div id="routeContent" style="display:none">
+          <input id="fromInput" type="text" placeholder="From: Enter building name...">
+          <input id="toInput" type="text" placeholder="To: Enter building name...">
+          <button id="routeButton">Find Route</button>
+          <button id="trackButton">Start Live Tracking</button>
+        </div>
+      </div>
+      <div id="legend">
+        <h3>Legend</h3>
+        <div class="legend-item">
+          <div class="legend-marker"></div>
+          <div class="legend-text">Searched Building</div>
+        </div>
+      </div>
+    </div>
+    <!-- Map Container -->
+    <div id="map"></div>
+  </div>
+
+  <script>
+    var map;
+    var infoWindow;
+    var searchMarker = null;
+    var directionsService;
+    var directionsRenderer;
+    var routePolyline = null;  // For directional arrows on the route
+    var liveTrackerMarker = null;  // For tracking the user's current location
+    var liveTrackId = null;  // For geolocation watch ID
+    var currentDestination = null;  // Store chosen destination building
+
+    // Example map style; adjust as desired.
+    var mapStyle = [
+      { "featureType": "all", "stylers": [ { "saturation": -50 }, { "lightness": 5 } ] },
+      { "featureType": "road", "elementType": "geometry", "stylers": [ { "hue": "#007fff" }, { "saturation": 30 } ] },
+      { "featureType": "water", "elementType": "geometry", "stylers": [ { "color": "#a1c4fd" } ] },
+      { "featureType": "poi", "stylers": [ { "visibility": "simplified" } ] },
+      { "featureType": "transit", "stylers": [ { "visibility": "simplified" } ] }
+    ];
+
+    // Dataset for campus resources (buildings).
+    var resources = [
+      {name: "Administration Building", lat: 39.2531345925294, lng: -76.71347729482584, type: "building"},
+      {name: "Biological Sciences Building", lat: 39.254849754482905, lng: -76.71216394549019, type: "building"},
+      {name: "Engineering Building", lat: 39.25459147395124, lng: -76.71394113645626, type: "building"},
+      {name: "Fine Arts Building", lat: 39.255124176513945, lng: -76.71344602460354, type: "building"},
+      {name: "Information Technology/Engineering Building (ITE)", lat: 39.25388926895672, lng: -76.71424341527158, type: "building"},
+      {name: "Interdisciplinary Life Sciences Building", lat: 39.25400226793664, lng: -76.71117372178459, type: "building"},
+      {name: "Lecture Hall 1", lat: 39.25480087119909, lng: -76.71180461156199, type: "building"},
+      {name: "Math & Psychology Building", lat: 39.25419598005312, lng: -76.7124558008981, type: "building"},
+      {name: "Meyerhoff Chemistry Building", lat: 39.25509592722537, lng: -76.71297175956568, type: "building"},
+      {name: "Performing Arts & Humanities Building", lat: 39.25519681746061, lng: -76.71518152193991, type: "building"},
+      {name: "Physics Building", lat: 39.25456726011072, lng: -76.70968317452288, type: "building"},
+      {name: "Public Policy Building", lat: 39.25526542273386, lng: -76.70912031052184, type: "building"},
+      {name: "Sherman Hall", lat: 39.25364052669565, lng: -76.71343945351701, type: "building"},
+      {name: "Sondheim Hall", lat: 39.25340561557563, lng: -76.71278482573884, type: "building"},
+      {name: "Chesapeake Hall", lat: 39.25687893630186, lng: -76.70875000274847, type: "building"},
+      {name: "Erickson Hall", lat: 39.25727717200658, lng: -76.7096991644804, type: "building"},
+      {name: "Harbor Hall", lat: 39.25725643436356, lng: -76.70855034946922, type: "building"},
+      {name: "Patapsco Hall", lat: 39.25511261551515, lng: -76.70673034606496, type: "building"},
+      {name: "Potomac Hall", lat: 39.25592179394622, lng: -76.70662380096735, type: "building"},
+      {name: "Susquehanna Hall", lat: 39.255667709158324, lng: -76.70852374142676, type: "building"},
+      {name: "Albin O. Kuhn Library and Gallery (AOK Library)", lat: 39.25633489594929, lng: -76.71154823313725, type: "building"},
+      {name: "Apartment Community Center (ACC)", lat: 39.25820531810224, lng: -76.71195663252004, type: "building"},
+      {name: "Campus Police Department", lat: 39.25730751863118, lng: -76.7141583239581, type: "building"},
+      {name: "Central Plant", lat: 39.25744996693917, lng: -76.71391493351122, type: "building"},
+      {name: "Chesapeake Arena", lat: 39.252474836247785, lng: -76.70746309633654, type: "building"},
+      {name: "Facilities Management Building", lat: 39.25277508626896, lng: -76.70452481650712, type: "building"},
+      {name: "Greenhouse", lat: 39.258162761695836, lng: -76.71357179023953, type: "building"},
+      {name: "Parking Services (900 Walker)", lat: 39.260175258871946, lng: -76.71536684170289, type: "building"},
+      {name: "Preschool Center", lat: 39.25809183292927, lng: -76.7080686314033, type: "building"},
+      {name: "Retriever Activities Center (RAC)", lat: 39.25292477732798, lng: -76.71254067780536, type: "building"},
+      {name: "Satellite Plant", lat: 39.25698595318187, lng: -76.70694672820909, type: "building"},
+      {name: "Tech 2 Building", lat: 39.25568687260855, lng: -76.70290914623365, type: "building"},
+      {name: "Technological Research Center (TRC)", lat: 39.25526048327397, lng: -76.70235704938513, type: "building"},
+      {name: "The Center for Well-Being", lat: 39.25610279679613, lng: -76.7089148423121, type: "building"},
+      {name: "The Commons", lat: 39.25503039910864, lng: -76.71083953512002, type: "building"},
+      {name: "True Grits", lat: 39.25579292331207, lng: -76.70772212575991, type: "building"},
+      {name: "UMBC Stadium Complex", lat: 39.25055232854239, lng: -76.7074760546811, type: "building"},
+      {name: "University Center", lat: 39.2543568261648, lng: -76.71334044332173, type: "building"},
+      {name: "Warehouse", lat: 39.253547903130084, lng: -76.70502645684019, type: "building"}
+    ];
+    
+    function initMap() {
+      var umbcCenter = {lat: 39.2538015, lng: -76.7142732};
+      var campusBounds = {
+          north: 39.260,
+          south: 39.250,
+          west: -76.720,
+          east: -76.700
+      };
+      
+      map = new google.maps.Map(document.getElementById("map"), {
+          zoom: 16,
+          center: umbcCenter,
+          restriction: { latLngBounds: campusBounds, strictBounds: true },
+          styles: mapStyle
+      });
+      
+      // Initialize Directions Service and Renderer.
+      directionsService = new google.maps.DirectionsService();
+      directionsRenderer = new google.maps.DirectionsRenderer({ suppressMarkers: false });
+      directionsRenderer.setMap(map);
+      
+      infoWindow = new google.maps.InfoWindow();
+      
+      // Tab switching for UI.
+      document.getElementById("tabSearch").addEventListener("click", function() {
+          document.getElementById("tabSearch").classList.add("active");
+          document.getElementById("tabRoute").classList.remove("active");
+          document.getElementById("searchContent").style.display = "block";
+          document.getElementById("routeContent").style.display = "none";
+      });
+      document.getElementById("tabRoute").addEventListener("click", function() {
+          document.getElementById("tabRoute").classList.add("active");
+          document.getElementById("tabSearch").classList.remove("active");
+          document.getElementById("routeContent").style.display = "block";
+          document.getElementById("searchContent").style.display = "none";
+      });
+      
+      // Event listeners for search, route, and live tracking buttons.
+      document.getElementById("searchButton").addEventListener("click", searchBuilding);
+      document.getElementById("searchInput").addEventListener("keyup", function(event) {
+          if (event.key === "Enter") { searchBuilding(); }
+      });
+      document.getElementById("routeButton").addEventListener("click", showRoute);
+      document.getElementById("trackButton").addEventListener("click", startLiveTracking);
+    }
+    
+    // Function for single building search.
+    function searchBuilding() {
+      var query = document.getElementById("searchInput").value.toLowerCase();
+      var found = resources.find(function(resource) {
+          return resource.type === "building" && resource.name.toLowerCase().includes(query);
+      });
+      
+      if (found) {
+          if (searchMarker) { searchMarker.setMap(null); }
+          directionsRenderer.set('directions', null);
+          if (routePolyline) { routePolyline.setMap(null); }
+          if (liveTrackerMarker) { liveTrackerMarker.setMap(null); }
+          
+          searchMarker = new google.maps.Marker({
+              position: {lat: found.lat, lng: found.lng},
+              map: map,
+              title: found.name,
+              icon: "http://maps.google.com/mapfiles/ms/icons/red-dot.png"
+          });
+          map.setCenter(searchMarker.getPosition());
+          map.setZoom(18);
+          infoWindow.setContent(found.name);
+          
+          // Provide rich content for selected buildings.
+          let content = "<strong>" + found.name + "</strong>";
+          if (found.name.toLowerCase().includes("library")) {
+              content = `
+                <div style="max-width:300px;font-family:Arial,sans-serif;">
+                  <h3>📚 ${found.name}</h3>
+                  <h4>Building Hours</h4>
+                  <ul style="margin-left:16px;">
+                    <li>Mon–Thu: 8:00 AM – 12:00 AM</li>
+                    <li>Friday: 8:00 AM – 6:00 PM</li>
+                    <li>Saturday: 10:00 AM – 6:00 PM</li>
+                    <li>Sunday: 12:00 PM – 12:00 AM</li>
+                  </ul>
+                  <h4>Using the Library</h4>
+                  <ul style="margin-left:16px;">
+                    <li>My Accounts</li>
+                    <li>Course Reserves</li>
+                    <li>Study Spaces & Lockers</li>
+                    <li>Computing & Software</li>
+                    <li>Borrowing Items & Fines</li>
+                    <li>Faculty Services</li>
+                    <li>More…</li>
+                  </ul>
+                </div>`;
+          }
+          if (found.name.toLowerCase().includes("commons")) {
+              content = `
+                <div style="max-width:300px;font-family:Arial,sans-serif;">
+                  <h3>${found.name}</h3>
+                  <h4>Building Hours</h4>
+                  <ul style="margin-left:16px;">
+                    <li>Mon–Thu: 7:30 AM – 11:00 PM</li>
+                    <li>Friday: 7:30 AM – Midnight</li>
+                    <li>Saturday: 8:00 AM – Midnight</li>
+                    <li>Sunday: 10:00 AM – 09:00 PM</li>
+                  </ul>
+                  <h4>Using the Commons</h4>
+                  <ul style="margin-left:16px;">
+                    <li>Halal Shack</li>
+                    <li>Tomato</li>
+                    <li>Dunkin</li>
+                    <li>Women's Center</li>
+                    <li>Copperhead Jack</li>
+                    <li>Sushi Do</li>
+                    <li>SGA Office</li>
+                    <li>Mosaic & Printing</li>
+                    <li>Market</li>
+                  </ul>
+                </div>`;
+          }
+          if (found.name.toLowerCase().includes("rac")) {
+              content = `
+                <div style="max-width:300px;font-family:Arial,sans-serif;">
+                  <h3>${found.name}</h3>
+                  <h4>Building Hours</h4>
+                  <ul style="margin-left:16px;">
+                    <li>Mon–Thu: 7:00 AM – 10:00 PM</li>
+                    <li>Friday: 7:00 AM – 9:00 PM</li>
+                    <li>Saturday: 10:00 AM – 6:00 PM</li>
+                    <li>Sunday: 12:00 PM – 07:00 PM</li>
+                  </ul>
+                  <h4>Using the RAC</h4>
+                  <ul style="margin-left:16px;">
+                    <li>Fitness Classes</li>
+                    <li>Cardio Zone</li>
+                    <li>Group Fitness Studio</li>
+                    <li>Weight Room</li>
+                    <li>RAC Courts</li>
+                    <li>Cycling Studio</li>
+                    <li>Arena Court</li>
+                    <li>Aquatics Center</li>
+                  </ul>
+                </div>`;
+          }
+          infoWindow.setContent(content);
+          infoWindow.open(map, searchMarker);
+      } else {
+          alert("No matching building found.");
+      }
+    }
+    
+    // Function to compute and display a walking route between two buildings.
+    var currentRoutePath = null;
+    function showRoute() {
+      var fromQuery = document.getElementById("fromInput").value.toLowerCase();
+      var toQuery = document.getElementById("toInput").value.toLowerCase();
+      
+      var originBuilding = resources.find(function(resource) {
+          return resource.type === "building" && resource.name.toLowerCase().includes(fromQuery);
+      });
+      var destinationBuilding = resources.find(function(resource) {
+          return resource.type === "building" && resource.name.toLowerCase().includes(toQuery);
+      });
+      
+      if (!originBuilding) {
+          alert("No matching origin building found.");
+          return;
+      }
+      if (!destinationBuilding) {
+          alert("No matching destination building found.");
+          return;
+      }
+      
+      // Save destination for live tracking.
+      currentDestination = destinationBuilding;
+      
+      var request = {
+          origin: {lat: originBuilding.lat, lng: originBuilding.lng},
+          destination: {lat: destinationBuilding.lat, lng: destinationBuilding.lng},
+          travelMode: google.maps.TravelMode.WALKING
+      };
+      
+      directionsService.route(request, function(response, status) {
+          if (status === google.maps.DirectionsStatus.OK) {
+              directionsRenderer.setDirections(response);
+              if (searchMarker) { searchMarker.setMap(null); }
+              if (routePolyline) { routePolyline.setMap(null); }
+              currentRoutePath = response.routes[0].overview_path;
+              var arrowSymbol = {
+                  path: google.maps.SymbolPath.FORWARD_CLOSED_ARROW,
+                  scale: 2,
+                  strokeColor: '#0000FF'
+              };
+              routePolyline = new google.maps.Polyline({
+                  path: currentRoutePath,
+                  strokeOpacity: 0,
+                  icons: [{
+                      icon: arrowSymbol,
+                      offset: '0',
+                      repeat: '20px'
+                  }],
+                  map: map
+              });
+          } else {
+              alert("Could not display route due to: " + status);
+          }
+      });
+    }
+    
+    // Live tracking using browser's geolocation with high accuracy.
+    function startLiveTracking() {
+      if (!currentDestination) {
+          alert("Please compute a route (choose a destination) first.");
+          return;
+      }
+      if (navigator.geolocation) {
+          liveTrackId = navigator.geolocation.watchPosition(function(position) {
+              var userLatLng = {
+                  lat: position.coords.latitude,
+                  lng: position.coords.longitude
+              };
+              console.log("User position updated: " + userLatLng.lat + ", " + userLatLng.lng);
+              if (liveTrackerMarker) {
+                  liveTrackerMarker.setPosition(userLatLng);
+              } else {
+                  liveTrackerMarker = new google.maps.Marker({
+                      position: userLatLng,
+                      map: map,
+                      title: "Your Location",
+                      icon: "http://maps.google.com/mapfiles/kml/shapes/man.png"
+                  });
+              }
+              // Re-compute the route from user's current location to destination.
+              var request = {
+                  origin: userLatLng,
+                  destination: {lat: currentDestination.lat, lng: currentDestination.lng},
+                  travelMode: google.maps.TravelMode.WALKING
+              };
+              directionsService.route(request, function(response, status) {
+                  if (status === google.maps.DirectionsStatus.OK) {
+                      directionsRenderer.setDirections(response);
+                  } else {
+                      console.error("Error updating route: " + status);
+                  }
+              });
+          }, function(error) {
+              if (error.code === error.PERMISSION_DENIED) {
+                  alert("Location access denied. Please allow location sharing in your browser settings.");
+              } else {
+                  alert("Error obtaining your location: " + error.message);
+              }
+          }, { enableHighAccuracy: true, maximumAge: 0, timeout: 5000 });
+      } else {
+          alert("Geolocation is not supported by this browser.");
+      }
+    }
+  </script>
+  <!-- Replace YOUR_API_KEY with your actual Google Maps API key -->
+  <script async defer src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCvd4ccDAWW8HsuKMYg7aqLgcQzpdFZm2Q&callback=initMap"></script>
+</body>
+</html>
+"""
+
+class MainWindow(QMainWindow):
+    def __init__(self):
+        super().__init__()
+        self.setWindowTitle("UMBC Campus Map")
+        self.setGeometry(100, 100, 1200, 800)
+        self.browser = QWebEngineView()
+        self.browser.setHtml(html_content)
+        self.setCentralWidget(self.browser)
+
+if __name__ == '__main__':
+    app = QApplication([])
+    window = MainWindow()
+    window.show()
+    app.exec_()
