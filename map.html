@@ -1,0 +1,104 @@
+
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>UMBC Campus Map</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+  <div id="header">
+    Grit Guide
+
+    <img id="umbcLogo" src="images/UMBC-primary-logo-RGB.png" alt="UMBC Logo" class="logo">
+  </div>
+
+  <div id="main-container">
+    <div id="sidebar">
+      <div id="tabs">
+        <button class="tab active" id="tabSearch">Search Building</button>
+        <button class="tab" id="tabRoute">Find Route</button>
+      </div>
+
+      <div id="tabContent">
+        <div id="searchContent">
+          <input id="searchInput" type="text" placeholder="Enter building name..." autocomplete="off">
+          <div id="suggestions"></div>
+          <button id="searchButton">Search</button>
+        </div>
+
+        <div id="routeContent" style="display:none">
+          <input id="fromInput" type="text" placeholder="From: Enter building name...">
+          <input id="toInput" type="text" placeholder="To: Enter building name...">
+          <div id="fromSuggestions" class="suggestions-box"></div>
+          <div id="toSuggestions" class="suggestions-box"></div>
+          <button id="routeButton">Find Route</button>
+          <button id="trackButton">Start Live Tracking</button>
+          <button id="stopTrackButton">Stop Live Tracking</button>
+          <div id="instructions"></div>
+        </div>
+      </div>
+
+      <div id="legend">
+        <h3>Legend</h3>
+        <div class="legend-item">
+          <div class="dropdown-section">
+            <label for="categoryDropdown"><strong>Buildings</strong></label>
+            <select id="categoryDropdown" onchange="filterByCategory()">
+              <option value="building"> </option>
+              <option value="building">Administration Building</option>
+              <option value="building">Albin O. Kuhn Library</option>
+              <option value="building">The Commons</option>
+              <option value="building">Engineering Building</option>
+              <option value="building">Fine Arts Building</option>
+              <option value="building">Information Technology (ITE) </option>
+              <option value="building">Math and Psychology Building</option>
+              <option value="building">Physics Building</option>
+              <option value="building">Public Policy Building</option>
+              <option value="building">RAC (Retriever Activities Center)</option>
+              <option value="building">Sherman Hall</option>
+              <option value="building">Sondheim Hall</option>
+              <option value="building">Lecture Hall 1</option>
+              <option value="building">University Center</option>
+
+
+              <select>
+            <label for="categoryDropdown"><strong>Dining</strong></label>
+            <select id="categoryDropdown" onchange="filterByCategory()">
+              <option value="all"></option>
+              <option value="dining">Halal Shack</option>
+              <option value="dining">True Grits</option>
+              <option value="dining">Starbucks</option>
+              <option value="dining">Chick Fil A</option>
+              <option value="dining">Subway</option>
+              <option value="dining">Einstein Bros Bagels</option>
+              <option value="dining">Sushi Do</option>
+              <option value="dining">2.Mato</option>
+              <option value="dining">The Market Place</option>
+              <option value="dining">Yum Shoppe</option>
+              <option value="dining">Wild Greens</option>
+              <option value="dining">Indian Kitchen</option>
+              <option value="dining">Copperhead Jack's</option>
+              <option value="dining">Absurd Bird and Burgers</option>
+              <option value="dining">Dunkin</option>
+              <option value="dining">The Coffee Shop</option>
+
+
+            </select>
+          </div>
+          
+        </div>
+      </div>
+    </div>
+
+    <div id="map"></div>
+  </div>
+
+  <script src="/script.js"></script>
+  <script async defer src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCvd4ccDAWW8HsuKMYg7aqLgcQzpdFZm2Q&callback=initMap"></script>
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+</body>
+</html>
