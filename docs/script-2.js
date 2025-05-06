@@ -242,6 +242,12 @@ function showSuggestions() {
   suggestionsDiv.style.display = "block";
 }
 
+document.getElementById('sidebarToggle').addEventListener('click', function() {
+    const sidebar = document.getElementById('sidebar');
+    sidebar.classList.toggle('show');
+  });
+
+  
 function setupRouteInputSuggestions(inputId, suggestionBoxId) {
   const input = document.getElementById(inputId);
   const box = document.getElementById(suggestionBoxId);
