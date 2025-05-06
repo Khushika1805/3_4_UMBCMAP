@@ -144,10 +144,11 @@ var resources = [
   {name: "Career Center", lat: 39.25419598005312, lng: -76.7124558008981, type: "building"},
   {name: "Student Disability Services (SDS)", lat: 39.25419598005312, lng: -76.7124558008981, type: "department"},
   {name: "Bookstore", lat: 39.25460877875424, lng: -76.7109573721196, type: "department"},
-  {name: "Student Business Services", lat: 39.2531345925294, lng: -76.71347729482584, type: "department"},
+  {name: "Student Business Services (SBS)", lat: 39.2531345925294, lng: -76.71347729482584, type: "department"},
   {name: "Office of Equity and Civil Rights", lat: 39.2531345925294, lng: -76.71347729482584, type: "department"},
   {name: "Computing Success Center", lat: 39.255124176513945, lng: -76.71344602460354, type: "department"},
   {name: "Admissions: Undergraduate", lat: 39.25619638799217, lng: -76.71196323139063, type: "department"},
+  {name: "Honors College", lat: 39.25633489594929, lng: -76.71154823313725, type: "department"},
 
 
   //Outdoor recreational areas
@@ -416,6 +417,7 @@ function searchBuilding() {
           
                   <h4>🕒 Hours (Fall/Spring)</h4>
                   <ul>
+                    <li> Math & Psychology Building, Room 201</li>
                     <li><strong>Mon–Fri:</strong> 8:30 AM – 5:00 PM</li>
                   </ul>
           
@@ -446,8 +448,184 @@ function searchBuilding() {
               confirmButtonText: 'Close'
             });
           }
-          
+
+          if (found.name.toLowerCase().includes("student business services")) {
+            Swal.fire({
+              title: '📚 Campus Resources by Topic',
+              html: `
+                <div style="max-height:400px; overflow-y:auto; text-align:left; font-family:Arial,sans-serif; font-size:14px;">
+                  <h4> Admin Building (3rd Floor)</h4>
+                  <h4> SBS is the office that bills students, collects tuition and fees and issues student refunds. We process student payments, tuition remission, military waivers and post payments to student accounts from outside agencies.</h4>
+              `,
+              width: 600,
+              showCloseButton: true,
+              confirmButtonColor: '#fdb515',
+              confirmButtonText: 'Close'
+            });
+          }
+
+          if (found.name.toLowerCase().includes("office of equity and civil rights")) {
+            Swal.fire({
+              title: '⚖️ Office of Equity and Civil Rights (OECR)',
+              html: `
+                <div style="max-height:400px; overflow-y:auto; text-align:left; font-family:Arial,sans-serif; font-size:14px;">
+                  <h4>Administration Building (9th Floor)</h4>
+                  <p>OECR coordinates UMBC’s civil rights compliance efforts including Title IX, ADA, and equal opportunity policies. They manage discrimination and harassment complaints and promote a safe, inclusive campus.</p>
+                </div>
+              `,
+              width: 600,
+              showCloseButton: true,
+              confirmButtonColor: '#fdb515',
+              confirmButtonText: 'Close'
+            });
+          }
+
+          if (found.name.toLowerCase().includes("office of equity and civil rights")) {
+            Swal.fire({
+              title: '⚖️ Office of Equity and Civil Rights (OECR)',
+              html: `
+                <div style="max-height:400px; overflow-y:auto; text-align:left; font-family:Arial,sans-serif; font-size:14px;">
+                  <h4>Administration Building (9th Floor)</h4>
+                  <p>OECR coordinates UMBC’s civil rights compliance efforts including Title IX, ADA, and equal opportunity policies. They manage discrimination and harassment complaints and promote a safe, inclusive campus.</p>
+                </div>
+              `,
+              width: 600,
+              showCloseButton: true,
+              confirmButtonColor: '#fdb515',
+              confirmButtonText: 'Close'
+            });
+          }
+
+          if (found.name.toLowerCase().includes("student disability services")) {
+            Swal.fire({
+              title: '♿ Student Disability Services (SDS)',
+              html: `
+                <div style="max-height:400px; overflow-y:auto; text-align:left; font-family:Arial,sans-serif; font-size:14px;">
+                  <h4>Math and Psychology Building, Room 212</h4>
+                  <p>SDS works to ensure equitable access to education for students with disabilities. They provide academic accommodations, assistive technologies, and guidance to support student success.</p>
+                </div>
+              `,
+              width: 600,
+              showCloseButton: true,
+              confirmButtonColor: '#fdb515',
+              confirmButtonText: 'Close'
+            });
+          }
+
+          if (found.name.toLowerCase().includes("computing success center")) {
+            Swal.fire({
+              title: '💻 Computing Success Center',
+              html: `
+                <div style="max-height:400px; overflow-y:auto; text-align:left; font-family:Arial,sans-serif; font-size:14px;">
+                  <h4>Fine Arts Building, Room 010</h4>
+                  <p>The CSC supports students in introductory computing courses with tutoring, mentoring, and academic guidance. It's a hub for collaborative learning in the computing disciplines.</p>
+                </div>
+              `,
+              width: 600,
+              showCloseButton: true,
+              confirmButtonColor: '#fdb515',
+              confirmButtonText: 'Close'
+            });
+          }
+
+          if (found.name.toLowerCase().includes("admissions: undergraduate")) {
+            Swal.fire({
+              title: '🎓 Undergraduate Admissions',
+              html: `
+                <div style="max-height:400px; overflow-y:auto; text-align:left; font-family:Arial,sans-serif; font-size:14px;">
+                  <h4>Albin O. Kuhn Library, Lower Level</h4>
+                  <p>The Undergraduate Admissions Office assists prospective students with the application process, campus visits, and enrollment information. They also support transfer and international applicants.</p>
+                </div>
+              `,
+              width: 600,
+              showCloseButton: true,
+              confirmButtonColor: '#fdb515',
+              confirmButtonText: 'Close'
+            });
+          }   
         
+          if (found.name.toLowerCase().includes("retriever learning center") || found.name.toLowerCase().includes("rlc")) {
+            Swal.fire({
+              title: '📖 Retriever Learning Center (RLC)',
+              html: `
+                <div style="max-height:400px; overflow-y:auto; text-align:left; font-family:Arial,sans-serif; font-size:14px;">
+                  <h4>Albin O. Kuhn Library, First Floor</h4>
+                  <p>The RLC is an open 24/7 collaborative study space offering quiet and group study areas, whiteboards, vending machines, and printing services. It's a favorite among students for late-night learning.</p>
+                </div>
+              `,
+              width: 600,
+              showCloseButton: true,
+              confirmButtonColor: '#fdb515',
+              confirmButtonText: 'Close'
+            });
+          }
+
+          if (found.name.toLowerCase().includes("writing center")) {
+            Swal.fire({
+              title: '✍️ UMBC Writing Center',
+              html: `
+                <div style="max-height:400px; overflow-y:auto; text-align:left; font-family:Arial,sans-serif; font-size:14px;">
+                  <h4>Albin O. Kuhn Library, First Floor (near RLC)</h4>
+                  <p>The Writing Center provides one-on-one consultations to help students improve their writing at any stage — from brainstorming to final revisions. It's open to all majors and writing levels.</p>
+                </div>
+              `,
+              width: 600,
+              showCloseButton: true,
+              confirmButtonColor: '#fdb515',
+              confirmButtonText: 'Close'
+            });
+          }
+          
+          if (found.name.toLowerCase().includes("honors college")) {
+            Swal.fire({
+              title: '🎓 Honors College',
+              html: `
+                <div style="max-height:400px; overflow-y:auto; text-align:left; font-family:Arial,sans-serif; font-size:14px;">
+                  <h4>Albin O. Kuhn Library, Room 216L (Second Floor)</h4>
+                  <p>The Honors College provides a challenging and enriching academic experience for high-achieving undergraduates. It offers small seminars, faculty mentorship, and a strong community of scholars.</p>
+                </div>
+              `,
+              width: 600,
+              showCloseButton: true,
+              confirmButtonColor: '#fdb515',
+              confirmButtonText: 'Close'
+            });
+          }
+
+          if (found.name.toLowerCase().includes("financial aid")) {
+            Swal.fire({
+              title: '💰 Financial Aid & Scholarships Office',
+              html: `
+                <div style="max-height:400px; overflow-y:auto; text-align:left; font-family:Arial,sans-serif; font-size:14px;">
+                  <h4>Location:</h4>
+                  <p>Near Library</p>
+                  
+                  <h4>About:</h4>
+                  <p>The Financial Aid & Scholarships Office helps students access federal, state, institutional, and private aid to support their education. They assist with FAFSA processing, award notifications, and maintaining eligibility.</p>
+                  
+                  <h4>Services Include:</h4>
+                  <ul>
+                    <li>FAFSA guidance</li>
+                    <li>Scholarship application assistance</li>
+                    <li>Verification and appeals</li>
+                    <li>Loan counseling</li>
+                    <li>Satisfactory Academic Progress (SAP) support</li>
+                  </ul>
+          
+                  <h4>Contact & Info:</h4>
+                  <p><a href="https://financialaid.umbc.edu" target="_blank">financialaid.umbc.edu</a></p>
+                </div>
+              `,
+              width: 600,
+              showCloseButton: true,
+              confirmButtonColor: '#fdb515',
+              confirmButtonText: 'Close'
+            });
+          }
+          
+          
+
+          
   
         if (found.name.toLowerCase().includes("commons")) {
             Swal.fire({
