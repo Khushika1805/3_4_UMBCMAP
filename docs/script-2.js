@@ -1283,6 +1283,27 @@ function searchBuilding() {
               confirmButtonText: 'Close'
             });
           }
+          if (found.name.toLowerCase().includes("einstein bros bagels")) {
+            Swal.fire({
+              title: '🥯 Einstein Bros Bagels',
+              html: `
+                <div style="max-height:400px; overflow-y:auto; text-align:left; font-family:Arial,sans-serif; font-size:14px;">
+                  <p>Located in the AOK Library, Einstein Bros is a go-to spot for bagels, coffee, and quick bites during study sessions.</p>
+                  <h4>🕒 Hours</h4>
+                  <ul style="padding-left: 18px; line-height: 1.6;">
+                    <li><strong>Sunday:</strong> 1:00 PM – 7:00 PM</li>
+                    <li><strong>Monday–Thursday:</strong> 9:00 AM – 10:00 PM</li>
+                    <li><strong>Friday:</strong> 9:00 AM – 3:00 PM</li>
+                    <li><strong>Saturday:</strong> Closed</li>
+                  </ul>
+                </div>
+              `,
+              width: 500,
+              showCloseButton: true,
+              confirmButtonColor: '#fdb515',
+              confirmButtonText: 'Close'
+            });
+          }          
           
           
           
@@ -1425,6 +1446,29 @@ function filterByCategory(selectElement) {
           showCloseButton: true
         });
     }
+
+    if (found.name.toLowerCase().includes("einstein bros bagels")) {
+        Swal.fire({
+          title: '🥯 Einstein Bros Bagels',
+          html: `
+            <div style="max-height:400px; overflow-y:auto; text-align:left; font-family:Arial,sans-serif; font-size:14px;">
+              <p>Located in the AOK Library, Einstein Bros is a go-to spot for bagels, coffee, and quick bites during study sessions.</p>
+              <h4>🕒 Hours</h4>
+              <ul style="padding-left: 18px; line-height: 1.6;">
+                <li><strong>Sunday:</strong> 1:00 PM – 7:00 PM</li>
+                <li><strong>Monday–Thursday:</strong> 9:00 AM – 10:00 PM</li>
+                <li><strong>Friday:</strong> 9:00 AM – 3:00 PM</li>
+                <li><strong>Saturday:</strong> Closed</li>
+              </ul>
+            </div>
+          `,
+          width: 500,
+          showCloseButton: true,
+          confirmButtonColor: '#fdb515',
+          confirmButtonText: 'Close'
+        });
+      }
+      
 
     if (found.name.toLowerCase().includes("math & psychology")) {
         Swal.fire({
